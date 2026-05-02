@@ -2,11 +2,29 @@ import axios from 'axios'
 import React, { useEffect } from 'react'
 import { BASE_URL } from '../utils/constants'
 import { useDispatch, useSelector } from 'react-redux'
-import { addRequest } from '../utils/requestSlice'
+import { addRequest, removeRequest } from '../utils/requestSlice'
+import { useState } from 'react'
 
 const Requests = () => {
     const dispatch = useDispatch();
     const requestdata = useSelector((store) => store.request);
+
+
+
+    const reviewRequest=async (status , requestId)=>{
+
+        try{
+            const res = await axios.post(BASE_URL + "/request/review/"+status +"/" +requestId ,{},{
+                withCredentials : true
+            })
+            dispatch(removeRequest(requestId))
+
+        }
+        catch(err){
+            console.log(err);
+        }
+
+    }
 
     const fetchRequests = async () => {
         try {
@@ -23,6 +41,17 @@ const Requests = () => {
     useEffect(() => {
         fetchRequests()
     }, [])
+
+
+
+
+
+    if(!requestdata) return;
+
+if(requestdata.length === 0){
+    return <h1 className='text-2xl font-bold text-black font-lg'>No connections found</h1>
+}
+
 
     return (
         <div className='w-full min-h-screen bg-gray-50 py-10'>
@@ -53,16 +82,27 @@ const Requests = () => {
                                             }}
                                         />
                                     </figure>
+
+                                  
                                     <div className="card-body items-center text-center">
                                         <h2 className="card-title text-xl font-bold">
                                             {firstName} {lastName}
                                         </h2>
                                         <p className="text-gray-600">{about || "No bio provided"}</p>
+                                          
                                         <div className="card-actions mt-4">
-                                            <button className="btn btn-primary">Accept Request</button>
-                                            <button className="btn btn-outline btn-secondary">Reject</button>
+                                            <button value={"accepted"} onClick={()=>{
+                                                reviewRequest("accepted",request._id)
+                                                setShowbutton(false);
+                                            }} className="btn btn-primary">Accept Request</button>
+                                            <button value={"rejected"} onClick={()=>{
+                                                reviewRequest("rejected", request._id)
+                                                setShowbutton(false);
+                                            }} className="btn btn-outline btn-secondary">Reject</button>
                                         </div>
+                                         
                                     </div>
+                                   
                                 </div>
                             )
                         })}

@@ -18,7 +18,10 @@ const Body = () => {
       const res = await axios.get(BASE_URL + "/profile/view", {
         withCredentials: true,
       });
-      dispatch(addUser(res.data.user));
+          // /profile/view returns the user object directly (res.send(user)),
+      // not wrapped in { user: ... }. Using res.data.user makes the payload
+      // undefined and wipes the Redux user on refresh -> Navbar disappears.
+      dispatch(addUser(res.data));
     } catch (err) {
       if (err.response?.status === 401) {
         navigate("/login");
