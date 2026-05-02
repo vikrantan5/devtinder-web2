@@ -32,3 +32,14 @@ configure the store ==>provided the store===>create slice ====>add reducer to th
 
 
 logina nd see the redux is wokirin gperfecltl we just refacotr the code to look clean
+
+
+you should not be able to access the other routes
+if no token redirect to the login page
+logout
+profile
+
+
+edit profile
+show toast
+
