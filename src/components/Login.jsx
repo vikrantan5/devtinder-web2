@@ -1,43 +1,81 @@
 import axios from "axios";
-
 import { useSelector, useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
-import React, { use, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { BASE_URL } from "../utils/constants";
 
 const Login = () => {
-  const [email, setEmail] = useState("user2@gmail.com"); // Changed from emailId to email
+  const [email, setEmail] = useState("user2@gmail.com");
   const [password, setPassword] = useState("Vik4an5@#3168");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [error, setError] = useState("");
-
   const handleLogin = async () => {
+    // Clear previous error and set loading
+    setError("");
+    setIsLoading(true);
+    
+    // Basic validation
+    if (!email || !password) {
+      setError("Please enter both email and password");
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       const result = await axios.post(
         BASE_URL + "/login",
         {
-          email: email, // Changed from emailId to email
+          email: email,
           password: password,
         },
         {
-          withCredentials: true, // Important for cookies
-        },
+          withCredentials: true,
+        }
       );
-      // console.log("Login success:", result.data);
-      dispatch(addUser(result.data.user));
-      // alert("Login successful!");
-      return navigate("/");
-    } catch (err) {
-      console.log("Login error:", err);
-      setError(err.response?.data?.message || "Login failed");
-      if (err.response) {
-        // alert(err.response.data?.message || "Login failed");
+      
+      console.log("Login success:", result.data);
+      
+      // Dispatch user to Redux store
+      if (result.data.user) {
+        dispatch(addUser(result.data.user));
+        
+        // Optional: Store user in localStorage as backup
+        localStorage.setItem("user", JSON.stringify(result.data.user));
+        
+        // Navigate to home page
+        navigate("/");
       } else {
-        alert("Cannot connect to server");
+        setError("Invalid response from server");
       }
+      
+    } catch (err) {
+      console.error("Login error:", err);
+      
+      // Handle different error scenarios
+      if (err.response) {
+        // Server responded with error
+        setError(err.response.data?.message || "Login failed. Please check your credentials.");
+      } else if (err.request) {
+        // Request was made but no response
+        setError("Cannot connect to server. Please check if backend is running.");
+      } else {
+        // Something else happened
+        setError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !isLoading) {
+      handleLogin();
     }
   };
 
@@ -74,46 +112,51 @@ const Login = () => {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-1">
-                Login Page
+                Welcome Back!
               </h2>
-              <p className="text-gray-500 text-sm">Welcome to DevTinder!</p>
+              <p className="text-gray-500 text-sm">Sign in to continue to DevTinder</p>
             </div>
+
+            {/* Error Message Display */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
             {/* Form Fields */}
             <div className="space-y-5">
               {/* Email Field */}
               <div className="transform transition-all duration-200 hover:translate-x-1">
-                <fieldset className="border-0 p-0 m-0">
-                  <legend className="text-sm font-semibold text-gray-700 mb-2 block">
-                    Email ID
-                  </legend>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg
-                        className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                        />
-                      </svg>
-                    </div>
-                    <input
-                      type="email" // Changed from "text" to "email" for better validation
-                      value={email} // Changed from emailId to email
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all duration-200"
-                      onChange={(e) => {
-                        setEmail(e.target.value); // Changed from setEmailId to setEmail
-                      }}
-                      placeholder="your@email.com"
-                    />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      />
+                    </svg>
                   </div>
-                </fieldset>
+                  <input
+                    type="email"
+                    value={email}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all duration-200"
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="your@email.com"
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
 
               {/* Password Field */}
@@ -130,30 +173,20 @@ const Login = () => {
                       fill="none"
                       stroke="currentColor"
                     >
-                      <g
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                        strokeWidth="2"
-                      >
+                      <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2">
                         <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
-                        <circle
-                          cx="16.5"
-                          cy="7.5"
-                          r=".5"
-                          fill="currentColor"
-                        ></circle>
+                        <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
                       </g>
                     </svg>
                   </div>
                   <input
                     type="password"
                     value={password}
-                    required
                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all duration-200"
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     placeholder="Enter your password"
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                    }}
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -165,9 +198,7 @@ const Login = () => {
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                   />
-                  <span className="ml-2 text-sm text-gray-600">
-                    Remember me
-                  </span>
+                  <span className="ml-2 text-sm text-gray-600">Remember me</span>
                 </label>
                 <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
                   Forgot password?
@@ -175,14 +206,24 @@ const Login = () => {
               </div>
             </div>
 
-            <p className="text-red-500">{error}</p>
             {/* Login Button */}
-            <div className="card-actions justify-end mt-8">
+            <div className="mt-8">
               <button
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 onClick={handleLogin}
+                disabled={isLoading}
               >
-                Login
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Logging in...
+                  </div>
+                ) : (
+                  "Login"
+                )}
               </button>
             </div>
 
@@ -190,9 +231,9 @@ const Login = () => {
             <div className="text-center mt-6 pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
-                <button className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors">
+                <Link to="/signup" className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors">
                   Sign up
-                </button>
+                </Link>
               </p>
             </div>
           </div>
