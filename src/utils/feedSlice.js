@@ -7,11 +7,14 @@ const feesSlice = createSlice({
         addFeed:(state , action)=>{
             return action.payload
         },
-        removeFeed:(state , action)=>{
-            return null;
+        removeUserFromFeed:(state , action)=>{
+           const newFeed = state.filter((u)=>{
+                return u._id !== action.payload
+           })
+              return newFeed;
         }
     },
 })
 
-export const {addFeed} = feesSlice.actions;
+export const {addFeed, removeUserFromFeed} = feesSlice.actions;
 export default feesSlice.reducer;

@@ -43,3 +43,13 @@ profile
 edit profile
 show toast
 
+
+
+
+Deployment
+
+signin to aws
+
+lau8nch instanee
+
+chmod 400 secret.pem

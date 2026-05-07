@@ -1,6 +1,25 @@
+import axios from 'axios';
 import React from 'react'
+import { BASE_URL } from '../utils/constants';
+import { useDispatch } from 'react-redux';
+import { removeUserFromFeed } from '../utils/feedSlice';
 
 const Usercard = ({ user }) => {
+  const dispatch = useDispatch();
+
+  const handlesendRequest = async({status , senderId})=>{
+    try{
+      const res = await axios.post(BASE_URL +"/request/send/"+ status+"/" +senderId,{}, {withCredentials : true
+      });
+      console.log(res.data);
+      dispatch(removeUserFromFeed(senderId))
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+
     console.log(user)
   return (
     <div className="card bg-base-100 w-80 md:w-96 lg:w-80 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
@@ -40,13 +59,17 @@ const Usercard = ({ user }) => {
             🚀 Member since {new Date(user.createdAt || Date.now()).getFullYear()}
           </div>
           <div className="flex gap-2">
-            <button className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={()=>{
+              handlesendRequest({status: "interested", senderId: user._id})
+            }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
               Interested
             </button>
-            <button className="btn btn-outline btn-sm">Ignore</button>
+            <button className="btn btn-outline btn-sm" onClick={()=>{
+              handlesendRequest({status: "ignore", senderId: user._id})
+            }}>Ignore</button>
           </div>
         </div>
       </div>

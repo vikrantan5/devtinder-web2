@@ -6,10 +6,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { BASE_URL } from "../utils/constants";
 
 const Login = () => {
-  const [email, setEmail] = useState("user2@gmail.com");
-  const [password, setPassword] = useState("Vik4an5@#3168");
+  const [firstName, setName] = useState("vikran");
+  const [lastName, setLastname] = useState("singh");
+  const [email, setEmail] = useState("nida@gmail.com");
+  const [password, setPassword] = useState("Vik4an5@#");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -72,6 +75,40 @@ const Login = () => {
     }
   };
 
+
+
+  const handleSignup = async()=>{
+    // Clear previous error and set loading
+    setError("");
+    setIsLoading(true);
+    // Basic validation
+    if (!firstName || !lastName || !email || !password) {
+      setError("Please fill in all fields");
+      setIsLoading(false);
+      return;
+    }
+    try{
+      const res = await axios.post(BASE_URL +"/signup" ,{ firstName, lastName, email, password },
+        { withCredentials: true }
+      )
+      dispatch(addUser(res.data.user));
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      navigate("/profile");
+
+    }
+    catch(err){
+      console.error("Signup error:", err);
+      if (err.response) {
+        setError(err.response.data?.message || "Signup failed. Please check your details.");
+      } else if (err.request) {
+        setError("Cannot connect to server. Please check if backend is running.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    }
+
+  }
+
   // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !isLoading) {
@@ -114,7 +151,7 @@ const Login = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-1">
                 Welcome Back!
               </h2>
-              <p className="text-gray-500 text-sm">Sign in to continue to DevTinder</p>
+              <p className="text-gray-500 text-sm">{isLogin  ? "Sign in to continue to DevTinder" : "Create an account to continue to DevTinder"}</p>
             </div>
 
             {/* Error Message Display */}
@@ -126,6 +163,86 @@ const Login = () => {
 
             {/* Form Fields */}
             <div className="space-y-5">
+
+
+
+
+              {!isLogin && ( <><div className="transform transition-all duration-200 hover:translate-x-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  FirstName
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    {/* <svg
+                      className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      />
+                    </svg> */}
+                  </div>
+                  <input
+                    type="text"
+                    value={firstName}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all duration-200"
+                    onChange={(e) => setFirstName(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Vikrant"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+
+
+
+
+
+
+
+
+             <div className="transform transition-all duration-200 hover:translate-x-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  LastName
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    {/* <svg
+                      className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      />
+                    </svg> */}
+                  </div>
+                  <input
+                    type="text"
+                    value={lastName}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all duration-200"
+                    onChange={(e) => setLastName(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Singh"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div> 
+              </>)
+              
+}
+
+              
               {/* Email Field */}
               <div className="transform transition-all duration-200 hover:translate-x-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -208,7 +325,9 @@ const Login = () => {
 
             {/* Login Button */}
             <div className="mt-8">
-              <button
+
+
+              {isLogin ?  <button
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 onClick={handleLogin}
                 disabled={isLoading}
@@ -225,16 +344,45 @@ const Login = () => {
                   "Login"
                 )}
               </button>
+              :
+              <button
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={handleSignup}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating your account...
+                  </div>
+                ) : (
+                  "SignUp"
+                )}
+              </button>}
             </div>
 
             {/* Sign up link */}
             <div className="text-center mt-6 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            {isLogin ?  <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors">
+                <Link  className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors" onClick={()=>{
+                  setIsLogin(false)
+                }}>
                   Sign up
                 </Link>
               </p>
+              :
+              <p className="text-sm text-gray-600">
+                Already had an account?{" "}
+                <Link  className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors" onClick={()=>{
+                  setIsLogin(true)
+                }}>
+                  Log in
+                </Link>
+              </p>}
             </div>
           </div>
         </div>
